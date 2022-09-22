@@ -28,10 +28,10 @@ float rast(float* x, size_t n) {
     return result;
 }
 
-float schfewel(float* x, size_t n) {
+float schwefel(float* x, size_t n) {
     float result = 0.0f;
     for(size_t i=0; i<n; i++) {
-        result += -x[i] * sinf(sqrtf();
+        result += -x[i] * sinf(sqrtf(fabsf(x[i])));
     }
     return result;
 }

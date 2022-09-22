@@ -2,7 +2,7 @@
 all: functions
 
 functions:
-	gcc -fPIC -shared -o functions.so functions.c
+	gcc -fPIC -lm -shared -o functions.so functions.c
 
 
 clean:

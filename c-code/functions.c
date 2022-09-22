@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <float.h>
 #include <math.h>
 
 float sphere(float* x, size_t n) {
@@ -21,9 +22,16 @@ float ros(float* x, size_t n) {
 
 float rast(float* x, size_t n) {
     float result = 10*n;
-    for (size_t i=0; i<n; i++) {
+    for(size_t i=0; i<n; i++) {
         result += x[i]*x[i] - 10 * cosf(M_2_PI*x[i]);
     }
     return result;
 }
 
+float schfewel(float* x, size_t n) {
+    float result = 0.0f;
+    for(size_t i=0; i<n; i++) {
+        result += -x[i] * sinf(sqrtf();
+    }
+    return result;
+}

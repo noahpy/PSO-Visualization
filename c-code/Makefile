@@ -2,8 +2,8 @@
 all: functions
 
 functions:
-	gcc -fPIC -lm -shared -o functions.so functions.c
+	gcc -fPIC -lm -shared -o pso.so pso.c
 
 
 clean:
-	rm -f functions.so
+	rm -f pso.so

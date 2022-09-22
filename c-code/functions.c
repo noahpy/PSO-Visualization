@@ -1,4 +1,6 @@
 #include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <float.h>
 #include <math.h>
 
@@ -35,3 +37,44 @@ float schwefel(float* x, size_t n) {
     }
     return result;
 }
+
+// compare function for floats used for qsort
+int compf(const void* a, const void* b) {
+    float x = *(float*) a;
+    float y = *(float*) b;
+    if (x < y)
+        return -1;
+    if (x > y)
+        return 1;
+    return 0;
+}
+
+float pizza(float* x, size_t n) {
+    float result = sphere(x, n);
+    qsort(x, n, sizeof(float), compf);
+
+    if (x[0] * 1.1f < x[n-1]) {
+        float max = 0.0f;
+        if (x[n-1] > 0 && x[0] > 0) {
+            max = x[n-1] / x[0];
+        } else if (x[n-1] < 0 && x[0] < 0) {
+            max = x[0] / x[n-1];
+        } else {
+            size_t i = 0;
+            while (x[i] <= 0)
+                i++;
+            if (i != n-1) {
+                max = x[n-1] / x[i];
+            }
+            while (x[i] >= 0)
+                i--;
+
+            if (i != 0) {
+                max = max >= x[0] / x[i] ? max : x[0] / x[i];
+            }
+        }
+        result *= 10 * (2 * max - 2.1);
+    }
+    return result;
+}
+

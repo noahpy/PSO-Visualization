@@ -53,7 +53,7 @@ float pizza(float* x, size_t n) {
     float result = sphere(x, n);
     qsort(x, n, sizeof(float), compf);
 
-    if (x[0] * 1.1f < x[n-1]) {
+    if (x[0] * 1.1f > x[n-1]) {
         float max = 0.0f;
         if (x[n-1] > 0 && x[0] > 0) {
             max = x[n-1] / x[0];

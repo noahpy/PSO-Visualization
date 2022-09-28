@@ -28,6 +28,13 @@ void run_iter(size_t n, size_t dim, float* particles, float* particle_vels, int 
 }
 
 
+void call_fittness_func(float* x, size_t n, int func_id, int result){
+	if (func_id >= 0 && func_id < fit_func_amount){
+		result = fit_funcs[func_id](x, n);
+	}
+}
+
+
 
 
 

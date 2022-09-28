@@ -18,7 +18,7 @@ import random as r
 
 
 def blackbox_function(x,y):
-    return pow(abs(pow(x,2)-pow(y,2)),0.5) + abs(x)+ abs(y)
+    return pow(x,3) - x * pow(y,2)
 
 
 class PSO_App(ShowBase):
@@ -30,9 +30,9 @@ class PSO_App(ShowBase):
         format = GeomVertexFormat.getV3cp()
         vdata = GeomVertexData('terrain', format, Geom.UHStatic)
         
-        xbound = (-100,100)
-        ybound = (-100,100)
-        self.render_scale = 0.2
+        xbound = (-5,5)
+        ybound = (-5,5)
+        self.render_scale = 0.4
         self.z_transform = -100
         self.task_list = []
         panda_flag = True

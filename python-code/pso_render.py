@@ -30,10 +30,10 @@ class PSO_App(ShowBase):
         format = GeomVertexFormat.getV3cp()
         vdata = GeomVertexData('terrain', format, Geom.UHStatic)
         
-        xbound = (-5,5)
-        ybound = (-5,5)
-        self.render_scale = 0.4
-        self.z_transform = -100
+        xbound = (-100,100)
+        ybound = (-100,100)
+        self.render_scale = 0.7
+        self.z_transform = -200
         self.task_list = []
         panda_flag = True
         pointAmount = (xbound[1]-xbound[0]+1) * (ybound[1]-ybound[0]+1)
@@ -84,7 +84,7 @@ class PSO_App(ShowBase):
             particlePath.reparentTo(self.render)
             particlePath.setColor(r.uniform(0,1),r.uniform(0,1),r.uniform(0,1),1)
             particlePath.setScale(0.2)
-            particlePath.setPos(self.render_scale * particles[2*i],self.render_scale * particles[2*i+1],self.render_scale*(self.fittness_function(particles[2*i],particles[2*i+1]) + self.z_transform)+0.7) 
+            particlePath.setPos(self.render_scale * particles[2*i],self.render_scale * particles[2*i+1],self.render_scale*(self.fittness_function(particles[2*i],particles[2*i+1]) + self.z_transform) + 10) 
             self.particlePaths.append(particlePath)  
 
         
@@ -98,7 +98,7 @@ class PSO_App(ShowBase):
         self.render.setLight(plnp)
         
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
-        self.taskMgr.add(self.moveParticles, "Particle Movement")
+        #self.taskMgr.add(self.moveParticles, "Particle Movement")
 
         
     def spinCameraTask(self, task):
@@ -117,7 +117,7 @@ class PSO_App(ShowBase):
         for i in range(len(self.particlePaths)):
             new_x = r.randint(-20,20)
             new_y = r.randint(-20,20)
-            k = LerpPosInterval(self.particlePaths[i], 0.5, Point3(self.render_scale * new_x, self.render_scale * new_y, self.render_scale * (self.fittness_function(new_x, new_y) + self.z_transform) + 0.7))
+            k = LerpPosInterval(self.particlePaths[i], 0.5, Point3(self.render_scale * new_x, self.render_scale * new_y, self.render_scale * (self.fittness_function(new_x, new_y) + self.z_transform) + 10))
             self.task_list.append(k)
         for task in self.task_list:
             task.start()

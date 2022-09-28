@@ -13,6 +13,7 @@ from math import *
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
+from direct.interval.LerpInterval import LerpPosInterval
 import random as r
 
 
@@ -30,8 +31,10 @@ class MyApp(ShowBase):
         
         xbound = (-100,100)
         ybound = (-100,100)
-        render_scale = 0.3
-        z_transform = -100
+        self.render_scale = 0.2
+        self.z_transform = -100
+        self.task_list = []
+        panda_flag = True
         pointAmount = (xbound[1]-xbound[0]+1) * (ybound[1]-ybound[0]+1)
         vdata.setNumRows(pointAmount)
         vertex = GeomVertexWriter(vdata, "vertex")
@@ -42,7 +45,7 @@ class MyApp(ShowBase):
         
         for y in range(ybound[0],ybound[1]+1,1):
             for x in range(xbound[0],xbound[1]+1,1):
-                vertex.addData3(render_scale*x,render_scale*y,render_scale*(blackbox_function(x,y)+z_transform))
+                vertex.addData3(self.render_scale*x,self.render_scale*y,self.render_scale*(blackbox_function(x,y)+self.z_transform))
                 color.addData4(1,1,1,1)
                 pos = x-xbound[0] + (y-ybound[0]) * (xbound[1]-xbound[0]+1)
                 if y < ybound[1] and x < xbound[1]:
@@ -56,7 +59,7 @@ class MyApp(ShowBase):
                     linesprim.addVertices(pos,pos-(xbound[1]-xbound[0]))
                     linesprim.addVertices(pos+1,pos-(xbound[1]-xbound[0]))
 
-    
+
         
         geom = Geom(vdata)
         geom.addPrimitive(prim)
@@ -73,59 +76,28 @@ class MyApp(ShowBase):
         linesNodePath.setRenderModeThickness(2)
         linesNodePath.setColor(0,0,0,1)
         
-        self.pandaActor = Actor("models/panda-model", {"walk":"models/panda-walk4"})
-        self.pandaActor.setScale(0.005, 0.005, 0.005)
-        self.pandaActor.reparentTo(self.render)
-        self.pandaActor.loop("walk")
         
-        # Create the four lerp intervals needed for the panda to
+        self.particlePaths = []
+        for i in range(len(particles)//2):
+            particlePath = self.loader.loadModel("./my_models/sphere")
+            particlePath.reparentTo(self.render)
+            particlePath.setColor(r.uniform(0,1),r.uniform(0,1),r.uniform(0,1),1)
+            particlePath.setScale(0.2)
+            particlePath.setPos(self.render_scale * particles[2*i],self.render_scale * particles[2*i+1],self.render_scale*(blackbox_function(particles[2*i],particles[2*i+1]) + self.z_transform)+0.7) 
+            self.particlePaths.append(particlePath)  
 
-        # walk back and forth.
-
-        pandaz = 0.5*render_scale*z_transform
-        posInterval1 = self.pandaActor.posInterval(13,
-
-                                                   Point3(0, -10, pandaz),
-
-                                                   startPos=Point3(0, 10, pandaz))
-
-        posInterval2 = self.pandaActor.posInterval(13,
-
-                                                   Point3(0, 10, pandaz),
-
-                                                   startPos=Point3(0, -10, pandaz))
-
-        hprInterval1 = self.pandaActor.hprInterval(3,
-
-                                                   Point3(180, 0, pandaz),
-
-                                                   startHpr=Point3(0, 0, pandaz))
-
-        hprInterval2 = self.pandaActor.hprInterval(3,
-
-                                                   Point3(0, 0, pandaz),
-
-                                                   startHpr=Point3(180, 0, pandaz))
-
-
-        # Create and play the sequence that coordinates the intervals.
-
-        self.pandaPace = Sequence(posInterval1, hprInterval1,
-
-                                  posInterval2, hprInterval2,
-
-                                  name="pandaPace")
-
-        self.pandaPace.loop()
-
+        
+        if panda_flag:
+            self.pandaTime()
         
         plight = PointLight('plight')
-        plight.setColor((1,1,1, 1))
+        plight.setColor((2, 2, 2, 1))
         plnp = self.render.attachNewNode(plight)
         plnp.setPos(10, 0, 0)
         self.render.setLight(plnp)
         
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
+        self.taskMgr.add(self.moveParticles, "Particle Movement")
 
         
     
@@ -142,6 +114,33 @@ class MyApp(ShowBase):
         self.camera.setHpr(angleDegrees, -70, 0)
 
         return Task.cont
+    
+    def moveParticles(self, task):
+        for task in self.task_list:
+            task.finish()
+        self.task_list = []
+        for i in range(len(self.particlePaths)):
+            new_x = r.randint(-20,20)
+            new_y = r.randint(-20,20)
+            k = LerpPosInterval(self.particlePaths[i], 0.5, Point3(self.render_scale * new_x, self.render_scale * new_y, self.render_scale * (blackbox_function(new_x, new_y) + self.z_transform) + 0.7))
+            self.task_list.append(k)
+        for task in self.task_list:
+            task.start()
+        return Task.cont
+
+    
+    def pandaTime(self):
+        self.pandaActor = Actor("models/panda-model", {"walk":"models/panda-walk4"})
+        self.pandaActor.setScale(0.005, 0.005, 0.005)
+        self.pandaActor.reparentTo(self.render)
+        self.pandaActor.loop("walk")
+        pandaz = 0.5*self.render_scale*self.z_transform
+        posInterval1 = self.pandaActor.posInterval(13, Point3(0, -10, pandaz), startPos=Point3(0, 10, pandaz))
+        posInterval2 = self.pandaActor.posInterval(13,Point3(0, 10, pandaz),startPos=Point3(0, -10, pandaz))
+        hprInterval1 = self.pandaActor.hprInterval(3,Point3(180, 0, pandaz),startHpr=Point3(0, 0, pandaz))
+        hprInterval2 = self.pandaActor.hprInterval(3,Point3(0, 0, pandaz),startHpr=Point3(180, 0, pandaz))
+        self.pandaPace = Sequence(posInterval1, hprInterval1,posInterval2, hprInterval2,name="pandaPace")
+        self.pandaPace.loop()
         
         
 

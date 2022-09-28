@@ -21,10 +21,11 @@ def blackbox_function(x,y):
     return pow(abs(pow(x,2)-pow(y,2)),0.5) + abs(x)+ abs(y)
 
 
-class MyApp(ShowBase):
+class PSO_App(ShowBase):
     
-    def __init__(self, particles:list):
+    def __init__(self, particles:list = [] , fittness_function=blackbox_function):
         ShowBase.__init__(self)
+        self.fittness_function = fittness_function
         
         format = GeomVertexFormat.getV3cp()
         vdata = GeomVertexData('terrain', format, Geom.UHStatic)
@@ -45,7 +46,7 @@ class MyApp(ShowBase):
         
         for y in range(ybound[0],ybound[1]+1,1):
             for x in range(xbound[0],xbound[1]+1,1):
-                vertex.addData3(self.render_scale*x,self.render_scale*y,self.render_scale*(blackbox_function(x,y)+self.z_transform))
+                vertex.addData3(self.render_scale*x,self.render_scale*y,self.render_scale*(self.fittness_function(x,y)+self.z_transform))
                 color.addData4(1,1,1,1)
                 pos = x-xbound[0] + (y-ybound[0]) * (xbound[1]-xbound[0]+1)
                 if y < ybound[1] and x < xbound[1]:
@@ -83,7 +84,7 @@ class MyApp(ShowBase):
             particlePath.reparentTo(self.render)
             particlePath.setColor(r.uniform(0,1),r.uniform(0,1),r.uniform(0,1),1)
             particlePath.setScale(0.2)
-            particlePath.setPos(self.render_scale * particles[2*i],self.render_scale * particles[2*i+1],self.render_scale*(blackbox_function(particles[2*i],particles[2*i+1]) + self.z_transform)+0.7) 
+            particlePath.setPos(self.render_scale * particles[2*i],self.render_scale * particles[2*i+1],self.render_scale*(self.fittness_function(particles[2*i],particles[2*i+1]) + self.z_transform)+0.7) 
             self.particlePaths.append(particlePath)  
 
         
@@ -100,20 +101,14 @@ class MyApp(ShowBase):
         self.taskMgr.add(self.moveParticles, "Particle Movement")
 
         
-    
     def spinCameraTask(self, task):
-
         angleDegrees = task.time * 30.0
-
         angleRadians = angleDegrees * (pi / 180.0)
-        
         rotation_r = 10
-
         self.camera.setPos(rotation_r * sin(angleRadians), -rotation_r * cos(angleRadians), 10)
-
         self.camera.setHpr(angleDegrees, -70, 0)
-
         return Task.cont
+    
     
     def moveParticles(self, task):
         for task in self.task_list:
@@ -122,7 +117,7 @@ class MyApp(ShowBase):
         for i in range(len(self.particlePaths)):
             new_x = r.randint(-20,20)
             new_y = r.randint(-20,20)
-            k = LerpPosInterval(self.particlePaths[i], 0.5, Point3(self.render_scale * new_x, self.render_scale * new_y, self.render_scale * (blackbox_function(new_x, new_y) + self.z_transform) + 0.7))
+            k = LerpPosInterval(self.particlePaths[i], 0.5, Point3(self.render_scale * new_x, self.render_scale * new_y, self.render_scale * (self.fittness_function(new_x, new_y) + self.z_transform) + 0.7))
             self.task_list.append(k)
         for task in self.task_list:
             task.start()
@@ -143,7 +138,8 @@ class MyApp(ShowBase):
         self.pandaPace.loop()
         
         
+if __name__ == '__main__':
+    particles = [0,0,4,3,3,12,5,-5,14,5]
+    app = PSO_App(particles)
+    app.run()
 
-particles = [0,0,4,3,3,12,5,-5,14,5]
-app = MyApp(particles)
-app.run()

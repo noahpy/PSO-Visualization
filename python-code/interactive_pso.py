@@ -1,7 +1,7 @@
 
 
 #this is a interactive GUI for PSO Visualization and Analysis.
-
+from pso_render import PSO_App
 import random as r
 from ctypes import *
 
@@ -23,6 +23,8 @@ for i in range(particle_amount*dimensions):
     #print(c_particles[i])
     pass
 
+app = PSO_App()
+app.run()
 
 
 

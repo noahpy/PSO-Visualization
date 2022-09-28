@@ -20,23 +20,14 @@ void run_iter(size_t n, size_t dim, float* particles, float* particle_vels, int 
 	}
 	memcpy(pers_best_cpy, pers_best_list, arr_size*4);
 	for(size_t i=0; i<arr_size; i++){
-		
+		float r1 = ((float)rand()/(float)(RAND_MAX));
+		float r2 = ((float)rand()/(float)(RAND_MAX));
+		particles[i] = (1-r1*soz_w) * particles[i] + vel_w * particle_vels[i] + (r1*soz_w) * best_pos[i%dim] + cog_w * r2 * (pers_best_cpy[i]-particles[i]);
+	//TODO: update global best and personal best
 	}
 }
 
 
-void update_velocity(){
-	
-}
-
-void update_position(){
-
-}
-
-
-void evaluate_fittness(){
-
-}
 
 
 

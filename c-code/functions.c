@@ -44,7 +44,6 @@ float schwefel(float* x, size_t n) {
     for(size_t i=0; i<n; i++) {
         if (x[i] < -500 || x[i] > 500)
             return INFINITY;
-
         result += -x[i] * sinf(sqrtf(fabsf(x[i])));
     }
     return result;

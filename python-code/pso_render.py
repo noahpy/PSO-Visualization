@@ -15,6 +15,9 @@ from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
 from direct.interval.LerpInterval import LerpPosInterval
 import random as r
+import time as t
+import queue
+import math
 
 
 def blackbox_function(x,y):
@@ -23,18 +26,26 @@ def blackbox_function(x,y):
 
 class PSO_App(ShowBase):
     
-    def __init__(self, particles:list = [] , fittness_function=blackbox_function):
+    def __init__(self, result_queue, func_id = -1,  particles:list = [] , fittness_function=blackbox_function, xbound = (-100,100), ybound = (-100,100)):
         ShowBase.__init__(self)
         self.fittness_function = fittness_function
+        self.particles = particles
+        self.result_queue = result_queue
+        self.starttime = t.time()
+        self.func_id = func_id
         
         format = GeomVertexFormat.getV3cp()
         vdata = GeomVertexData('terrain', format, Geom.UHStatic)
         
-        xbound = (-100,100)
-        ybound = (-100,100)
-        self.render_scale = 0.7
-        self.z_transform = -200
+        self.render_scale =  50 / (ybound[1]-ybound[0])
+        self.z_transform = (ybound[1]-ybound[0])/2*-1.5
         self.task_list = []
+        self.animtime = 0.3
+        self.spherescale = 0.8
+        self.rotation_r = 7
+        self.viewAngle = -70
+        
+        self.viewSetup()
         panda_flag = True
         pointAmount = (xbound[1]-xbound[0]+1) * (ybound[1]-ybound[0]+1)
         vdata.setNumRows(pointAmount)
@@ -43,22 +54,27 @@ class PSO_App(ShowBase):
         prim = GeomTriangles(Geom.UHStatic)
         linesprim = GeomLines(Geom.UHStatic)
         
-        
-        for y in range(ybound[0],ybound[1]+1,1):
-            for x in range(xbound[0],xbound[1]+1,1):
+        ysteps = int((ybound[1]-ybound[0])//200)
+        xsteps = int((xbound[1]-xbound[0])//200)
+        if ysteps == 0:
+            ysteps = 1
+        if xsteps == 0:
+            xsteps = 1
+        for y in range(int(ybound[0]),int(ybound[1]+ysteps),ysteps):
+            for x in range(int(xbound[0]),int(xbound[1]+xsteps),xsteps):
                 vertex.addData3(self.render_scale*x,self.render_scale*y,self.render_scale*(self.fittness_function(x,y)+self.z_transform))
                 color.addData4(1,1,1,1)
-                pos = x-xbound[0] + (y-ybound[0]) * (xbound[1]-xbound[0]+1)
+                pos = (x-xbound[0])//xsteps + (y-ybound[0])//ysteps * (xbound[1]-xbound[0]+xsteps)//xsteps
                 if y < ybound[1] and x < xbound[1]:
-                    prim.addVertices(pos,pos+1,pos+(xbound[1]-xbound[0]+1))
+                    prim.addVertices(pos,pos+1,pos+(xbound[1]-xbound[0]+xsteps)//xsteps)
                     linesprim.addVertices(pos,pos+1)
-                    linesprim.addVertices(pos+1,pos+(xbound[1]-xbound[0]+1))
-                    linesprim.addVertices(pos+(xbound[1]-xbound[0]+1),pos)
+                    linesprim.addVertices(pos+1,pos+(xbound[1]-xbound[0]+xsteps)//xsteps)
+                    linesprim.addVertices(pos+(xbound[1]-xbound[0]+xsteps)//xsteps,pos)
                 if y > ybound[0] and x < xbound[1]:
-                    prim.addVertices(pos,pos-(xbound[1]-xbound[0]),pos+1)
+                    prim.addVertices(pos,pos-(xbound[1]-xbound[0])//xsteps,pos+1)
                     linesprim.addVertices(pos,pos+1)
-                    linesprim.addVertices(pos,pos-(xbound[1]-xbound[0]))
-                    linesprim.addVertices(pos+1,pos-(xbound[1]-xbound[0]))
+                    linesprim.addVertices(pos,pos-(xbound[1]-xbound[0])//xsteps)
+                    linesprim.addVertices(pos+1,pos-(xbound[1]-xbound[0])//xsteps)
 
 
         
@@ -83,8 +99,11 @@ class PSO_App(ShowBase):
             particlePath = self.loader.loadModel("./my_models/sphere")
             particlePath.reparentTo(self.render)
             particlePath.setColor(r.uniform(0,1),r.uniform(0,1),r.uniform(0,1),1)
-            particlePath.setScale(0.2)
-            particlePath.setPos(self.render_scale * particles[2*i],self.render_scale * particles[2*i+1],self.render_scale*(self.fittness_function(particles[2*i],particles[2*i+1]) + self.z_transform) + 10) 
+            particlePath.setScale(self.spherescale)
+            h = self.fittness_function(particles[2*i],particles[2*i+1])
+            if math.isnan(h) or math.isinf(h):
+                h = 1
+            particlePath.setPos(self.render_scale * particles[2*i],self.render_scale * particles[2*i+1],self.render_scale*(h + self.z_transform) + 30 * self.render_scale) 
             self.particlePaths.append(particlePath)  
 
         
@@ -98,30 +117,60 @@ class PSO_App(ShowBase):
         self.render.setLight(plnp)
         
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
-        #self.taskMgr.add(self.moveParticles, "Particle Movement")
+        self.taskMgr.add(self.moveParticles, "Particle Movement")
+        
+    
+    def viewSetup(self):
+        if self.func_id == 3:
+            self.render_scale = 0.008
+            self.rotation_r = 7
+            self.viewAngle = -80
+            self.spherescale = 0.1
+            self.z_transform = -2300
+        elif self.func_id == 4:
+            self.render_scale = 0.07
+            self.rotation_r = 2
+            self.viewAngle = -80
+            self.spherescale = 0.7
+            self.z_transform = -5000
+        elif self.func_id == 0:
+            self.render_scale = 0.1
+            self.rotation_r = 2
+            self.viewAngle = -80
+            self.spherescale = 0.2
+            self.z_transform = -1200
+            
 
         
     def spinCameraTask(self, task):
         angleDegrees = task.time * 30.0
         angleRadians = angleDegrees * (pi / 180.0)
-        rotation_r = 10
-        self.camera.setPos(rotation_r * sin(angleRadians), -rotation_r * cos(angleRadians), 10)
-        self.camera.setHpr(angleDegrees, -70, 0)
+        self.camera.setPos(self.rotation_r * sin(angleRadians), -self.rotation_r * cos(angleRadians), 10)
+        self.camera.setHpr(angleDegrees, self.viewAngle, 0)
         return Task.cont
     
     
     def moveParticles(self, task):
-        for task in self.task_list:
-            task.finish()
-        self.task_list = []
-        for i in range(len(self.particlePaths)):
-            new_x = r.randint(-20,20)
-            new_y = r.randint(-20,20)
-            k = LerpPosInterval(self.particlePaths[i], 0.5, Point3(self.render_scale * new_x, self.render_scale * new_y, self.render_scale * (self.fittness_function(new_x, new_y) + self.z_transform) + 10))
-            self.task_list.append(k)
-        for task in self.task_list:
-            task.start()
+        try:
+            if not self.result_queue.empty():
+                if t.time()-self.starttime > self.animtime:
+                    self.particles = self.result_queue.get()
+                    self.task_list = []
+                    for i in range(len(self.particlePaths)):
+                        h = self.fittness_function(self.particles[2*i],self.particles[2*i+1])
+                        if math.isnan(h) or math.isinf(h):
+                            h = 1
+                        k = LerpPosInterval(self.particlePaths[i], self.animtime, Point3(self.render_scale * self.particles[2*i], self.render_scale * self.particles[2*i+1], self.render_scale * (h + self.z_transform) + 30*self.render_scale))
+                        self.task_list.append(k)
+                        k.start()
+                    self.starttime = t.time()
+        except:
+            pass
+            
         return Task.cont
+    
+    
+
 
     
     def pandaTime(self):
@@ -140,6 +189,6 @@ class PSO_App(ShowBase):
         
 if __name__ == '__main__':
     particles = [0,0,4,3,3,12,5,-5,14,5]
-    app = PSO_App(particles)
+    app = PSO_App(queue.Queue(),particles)
     app.run()
 

@@ -28,13 +28,20 @@ and their restriction and then generates those initial positions
 and velocities, etc. Then it will pass those references to the PSO-Module
 and the values get updated. The results are visualized in a 3D-visualization.
 
+## Next Steps:
+* Use vectorization / intrinsics in PSO-Module to gain even more speed!
+* Fix some visualization issues
+* Implement Discrete Particle Optimization and its visualization
 
 ## Results:
 Those are some results of the current program.
 
-![Result 1]("/images/schwefel.jpg")
+<img src=/assets/images/schwefel.jpg>
+<sub>Particle Swarm Optimization on Schwefel Function</sub>
 
-![Result 2]("/images/pizzs.jpg")
+
+<img src=/assets/images/pizzs.jpg>
+<sub>Particle Swarm Optimization on Pizza Function</sub>
 
 
 

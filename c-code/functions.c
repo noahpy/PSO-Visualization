@@ -92,3 +92,7 @@ float pizza(float* x, size_t n) {
     return result;
 }
 
+float tum_fau(float* x, size_t n){
+       
+}
+

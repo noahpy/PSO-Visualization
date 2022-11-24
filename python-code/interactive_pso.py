@@ -13,10 +13,10 @@ dimensions = 2
 vel_w = 0.5
 cog_w = 1.
 soz_w = 1.
-func_id = 0
+func_id = 4
 bounds_dict = [(-100,100),(-30,30),(-5.12,5.12),(-500,500),(-100,100)]
 
-c_pso = CDLL("./c-code/pso.so")
+c_pso = CDLL("../c-code/pso.so")
 c_pso.run_iter.argtypes = [c_size_t, c_size_t, POINTER(c_float), POINTER(c_float), c_int, POINTER(c_float), POINTER(c_float), c_float, c_float, c_float]
 c_pso.run_iter.restype = None
 c_pso.call_fittness_func.argtypes = [POINTER(c_float), c_size_t, c_int]

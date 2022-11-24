@@ -2,7 +2,7 @@
 all: functions
 
 functions:
-	gcc -fPIC -lm -shared -o pso.so pso.c
+	gcc -fPIC -lm -shared -O3 -o pso.so pso.c
 
 
 clean:

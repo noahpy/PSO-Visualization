@@ -46,13 +46,7 @@ class PSO_App(ShowBase):
         self.viewAngle = -70
         
         self.viewSetup()
-        panda_flag = True
-        pointAmount = (xbound[1]-xbound[0]+1) * (ybound[1]-ybound[0]+1)
-        vdata.setNumRows(pointAmount)
-        vertex = GeomVertexWriter(vdata, "vertex")
-        color = GeomVertexWriter(vdata, "color")
-        prim = GeomTriangles(Geom.UHStatic)
-        linesprim = GeomLines(Geom.UHStatic)
+        panda_flag = False
         
         ysteps = int((ybound[1]-ybound[0])//200)
         xsteps = int((xbound[1]-xbound[0])//200)
@@ -60,21 +54,29 @@ class PSO_App(ShowBase):
             ysteps = 1
         if xsteps == 0:
             xsteps = 1
+        pointAmount = (int(xbound[1]-xbound[0])//xsteps + 1) * (int(ybound[1]-ybound[0])//ysteps +1)
+        vdata.setNumRows(pointAmount)
+        vertex = GeomVertexWriter(vdata, "vertex")
+        color = GeomVertexWriter(vdata, "color")
+        prim = GeomTriangles(Geom.UHStatic)
+        linesprim = GeomLines(Geom.UHStatic)
+        
+
         for y in range(int(ybound[0]),int(ybound[1]+ysteps),ysteps):
             for x in range(int(xbound[0]),int(xbound[1]+xsteps),xsteps):
                 vertex.addData3(self.render_scale*x,self.render_scale*y,self.render_scale*(self.fittness_function(x,y)+self.z_transform))
                 color.addData4(1,1,1,1)
-                pos = (x-xbound[0])//xsteps + (y-ybound[0])//ysteps * (xbound[1]-xbound[0]+xsteps)//xsteps
+                pos = int(x-xbound[0])//xsteps + int(y-ybound[0])//ysteps * int(xbound[1]-xbound[0]+xsteps)//xsteps
                 if y < ybound[1] and x < xbound[1]:
-                    prim.addVertices(pos,pos+1,pos+(xbound[1]-xbound[0]+xsteps)//xsteps)
+                    prim.addVertices(pos,pos+1,pos+int(xbound[1]-xbound[0]+xsteps)//xsteps)
                     linesprim.addVertices(pos,pos+1)
-                    linesprim.addVertices(pos+1,pos+(xbound[1]-xbound[0]+xsteps)//xsteps)
-                    linesprim.addVertices(pos+(xbound[1]-xbound[0]+xsteps)//xsteps,pos)
+                    linesprim.addVertices(pos+1,pos+int(xbound[1]-xbound[0]+xsteps)//xsteps)
+                    linesprim.addVertices(pos+int(xbound[1]-xbound[0]+xsteps)//xsteps,pos)
                 if y > ybound[0] and x < xbound[1]:
-                    prim.addVertices(pos,pos-(xbound[1]-xbound[0])//xsteps,pos+1)
+                    prim.addVertices(pos,pos-int(xbound[1]-xbound[0])//xsteps,pos+1)
                     linesprim.addVertices(pos,pos+1)
-                    linesprim.addVertices(pos,pos-(xbound[1]-xbound[0])//xsteps)
-                    linesprim.addVertices(pos+1,pos-(xbound[1]-xbound[0])//xsteps)
+                    linesprim.addVertices(pos,pos-int(xbound[1]-xbound[0])//xsteps)
+                    linesprim.addVertices(pos+1,pos-int(xbound[1]-xbound[0])//xsteps)
 
 
         

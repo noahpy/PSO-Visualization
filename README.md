@@ -35,12 +35,15 @@ and the values get updated. The results are visualized in a 3D-visualization.
 ## Results:
 Those are some results of the current program.
 
-<img src=/assets/images/schwefel.jpg>
-<sub>Particle Swarm Optimization on Schwefel Function</sub>
+![Schwefel Function](/assets/gifs/optimized.gif)  
 
 
-<img src=/assets/images/pizzs.jpg>
-<sub>Particle Swarm Optimization on Pizza Function</sub>
+Particle Swarm Optimization on Schwefel Function
+
+
+![Pizza Function](/assets/images/pizzs.jpg)  
+
+Particle Swarm Optimization on Pizza Function
 
 
 
